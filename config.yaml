@@ -1,0 +1,18 @@
+files:
+  customers: data/raw/customers.csv
+  orders: data/raw/orders.jsonl
+  order_items: data/raw/order_items.csv
+
+quarantine:
+  output_dir: data/quarantine
+
+pipeline:
+  timezone_assumption: UTC
+  duplicate_strategy: earliest_signup
+  invalid_status_strategy: quarantine
+  invalid_items_strategy: quarantine
+  valid_statuses:
+    - placed
+    - shipped
+    - cancelled
+    - refunded
