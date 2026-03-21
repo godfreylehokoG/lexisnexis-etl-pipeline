@@ -34,4 +34,4 @@ def execute_sql_file(conn: psycopg.Connection, filepath: str) -> None:
     with conn.cursor() as cur:
         cur.execute(sql)
 
-    conncommit()
+    conn.commit()
