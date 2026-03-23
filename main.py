@@ -17,6 +17,7 @@ from pipeline.extract import extract_customers, extract_orders, extract_order_it
 from pipeline.transform import transform_customers, transform_orders, transform_order_items
 from pipeline.quarantine import write_quarantine
 from pipeline.load import load_customers, load_orders, load_order_items
+from pipeline.report import generate_report
 
 
 def cmd_init(config: dict, logger):
@@ -101,6 +102,14 @@ def cmd_run(config: dict, logger):
     logger.info(f"  Order Items: {len(raw_items)} in → {n3} loaded, {q3} quarantined")
     logger.info("=" * 50)
 
+    # ── REPORT ───────────────────────────────────────────────
+    with log_step(logger, "Report generation"):
+        conn = get_connection(config["database"])
+        try:
+            generate_report(conn, quarantine_dir)
+            logger.info("  Generated REPORT.md")
+        finally:
+            conn.close()
 
 def main():
     parser = argparse.ArgumentParser(description="Orders Data Pipeline")
