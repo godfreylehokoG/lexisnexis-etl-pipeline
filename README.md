@@ -187,28 +187,6 @@ Rejected rows are written to `data/quarantine/` with a `_rejection_reason` colum
 - `orders.csv` — unknown customers, invalid statuses, orphaned by customer dedup
 - `order_items.csv` — orphaned orders, non-positive quantities/prices
 
-### Cascading Rejections
-
-```
-Customer 5 → rejected (duplicate email)
-  └── Order 1006 → rejected (orphaned customer)
-       └── Item (1006,1) → rejected (orphaned order)
-
-Customer 6 → rejected (invalid email)
-  └── Order 1007 → rejected (orphaned customer)
-       └── Item (1007,1) → rejected (orphaned order)
-
-Customer 999 → never existed
-  └── Order 1003 → rejected (unknown customer)
-       └── Item (1003,1) → rejected (orphaned order)
-
-Order 1004 → rejected (invalid status "processing")
-  └── Item (1004,1) → rejected (orphaned order)
-  └── Item (1004,2) → rejected (orphaned order + qty=0)
-
-Item (1005,1) → rejected (unit_price=0.00)
-Item (1008,2) → rejected (unit_price=0.00)
-```
 
 ### Analytics Views
 
@@ -241,46 +219,6 @@ SELECT * FROM v_dq_invalid_items;
 SELECT * FROM v_dq_invalid_status;
 ```
 
-## Project Trade-Offs
-
-### COPY vs Batched Inserts
-I chose psycopg v3 client-side COPY for bulk loading. COPY is 10-100x faster than
-row-by-row inserts, which matters at scale. The trade-off is that COPY doesn't
-support UPSERT (ON CONFLICT) logic — if a constraint is violated, the entire COPY
-fails. I mitigate this by cleaning all data in the transform step before loading.
-The ETL does the hard work so the database load is simple and fast.
-
-### Quarantine vs Remap
-I quarantine invalid data rather than silently remapping it. For example, status
-"processing" is rejected rather than mapped to "placed". The trade-off is fewer
-rows loaded (15 out of 28). But the data that does load is trustworthy. In data
-engineering, the golden rule is: never silently change data. If something is wrong,
-reject it, record why, and let a human decide.
-
-### DROP + CREATE vs Migrations
-The schema setup drops and recreates tables every run. This is simple and
-guarantees a clean state for the reviewer. In production with real data, you would
-never DROP tables — you'd use a migration tool like Alembic for incremental schema
-changes.
-
-### Full Reload vs Incremental
-The pipeline does a full reload every run. This guarantees consistency — same input
-always produces the same output. At scale with millions of rows, you'd need
-incremental loading with watermarks or change data capture. For this dataset size,
-full reload is the right choice.
-
-### Strict Constraints vs Flexibility
-I enforce strict constraints — quantity and unit_price must be positive. This means
-items for cancelled orders with price=0.00 get rejected, which might be valid
-business logic. In production, I'd discuss with the business team whether cancelled
-orders should have different constraints.
-
-### Regular Views vs Materialized Views
-I use regular views for analytics. They compute on every query, which is fine for
-this data size. Materialized views would cache results for faster reads but need
-manual refreshing. The assignment asked for regular views, and at this scale there
-is no performance concern.
-
 ## AI Usage
 
 This project was developed with the assistance of AI (Claude) as a collaborative
@@ -311,8 +249,3 @@ decisions. AI doesn't know your business context, your team's conventions, or yo
 production constraints. I used AI the same way I'd use Stack Overflow or a senior
 colleague — as a resource for discussion, not a replacement for thinking.
 ```
-
-
-
-
-
