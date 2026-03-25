@@ -120,70 +120,6 @@ def call_gemini(prompt: str, llm_config: dict) -> str:
         return f"*Gemini unavailable ({e}). See LLM Integration Guide below.*"
 
 
-def call_openai_compatible(prompt: str, llm_config: dict) -> str:
-    """
-    Call OpenAI-compatible API (OpenAI, Groq, Ollama).
-    Falls back gracefully if unavailable.
-    """
-
-    try:
-        import httpx
-
-        base_url = llm_config.get("base_url", "http://localhost:11434/v1")
-        model = llm_config.get("model", "llama3.2")
-
-        headers = {"Content-Type": "application/json"}
-
-        api_key_env = llm_config.get("api_key_env")
-        if api_key_env:
-            api_key = os.getenv(api_key_env)
-            if api_key:
-                headers["Authorization"] = f"Bearer {api_key}"
-
-        payload = {
-            "model": model,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a data quality analyst. Write concise, actionable summaries."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            "temperature": 0.3,
-        }
-
-        response = httpx.post(
-            f"{base_url}/chat/completions",
-            json=payload,
-            headers=headers,
-            timeout=30.0,
-        )
-
-        if response.status_code == 200:
-            return response.json()["choices"][0]["message"]["content"]
-        else:
-            return f"*LLM returned status {response.status_code}.*"
-
-    except ImportError:
-        return "*httpx not installed. Run `pip install httpx` for LLM support.*"
-    except Exception as e:
-        return f"*LLM unavailable ({e}). See LLM Integration Guide below.*"
-
-
-def call_llm(prompt: str, llm_config: dict) -> str:
-    """Route to the correct LLM provider."""
-
-    provider = llm_config.get("provider", "gemini")
-
-    if provider == "gemini":
-        return call_gemini(prompt, llm_config)
-    else:
-        return call_openai_compatible(prompt, llm_config)
-
-
 def generate_report(
     conn: psycopg.Connection,
     quarantine_dir: str,
@@ -204,7 +140,7 @@ def generate_report(
     if llm_config and llm_config.get("enabled"):
         sections.append("## Executive Summary (AI-Generated)\n")
         prompt = build_prompt(metrics)
-        summary = call_llm(prompt, llm_config)
+        summary = call_gemini(prompt, llm_config)
         sections.append(summary)
         sections.append("")
     else:
@@ -243,8 +179,8 @@ def generate_report(
 
     # --- Section 5: LLM Integration Guide ---
     sections.append("## LLM Integration Guide\n")
-    sections.append("This report supports AI-powered executive summaries.\n")
-    sections.append("### Option 1: Google Gemini (Free — Recommended)")
+    sections.append("This report supports AI-powered executive summaries Using Gemini.\n")
+    sections.append("### Google Gemini")
     sections.append("```bash")
     sections.append("# Get a free API key at https://aistudio.google.com")
     sections.append("```")
@@ -253,35 +189,12 @@ def generate_report(
     sections.append("llm:")
     sections.append("  enabled: true")
     sections.append("  provider: gemini")
-    sections.append("  model: gemini-2.0-flash")
+    sections.append("  model: gemini-2.5-flash")
     sections.append("  api_key_env: GEMINI_API_KEY")
     sections.append("```")
     sections.append("```env")
     sections.append("# .env")
     sections.append("GEMINI_API_KEY=your-key-here")
-    sections.append("```\n")
-    sections.append("### Option 2: Ollama (Local — Free)")
-    sections.append("```bash")
-    sections.append("# Install from https://ollama.com")
-    sections.append("ollama pull llama3.2")
-    sections.append("```")
-    sections.append("```yaml")
-    sections.append("# config.yaml")
-    sections.append("llm:")
-    sections.append("  enabled: true")
-    sections.append("  provider: ollama")
-    sections.append("  model: llama3.2")
-    sections.append("  base_url: http://localhost:11434/v1")
-    sections.append("```\n")
-    sections.append("### Option 3: OpenAI / Groq (Cloud)")
-    sections.append("```yaml")
-    sections.append("# config.yaml")
-    sections.append("llm:")
-    sections.append("  enabled: true")
-    sections.append("  provider: openai   # or groq")
-    sections.append("  model: gpt-4o-mini  # or llama-3.1-8b-instant")
-    sections.append("  base_url: https://api.openai.com/v1")
-    sections.append("  api_key_env: OPENAI_API_KEY")
     sections.append("```\n")
 
     # Write report

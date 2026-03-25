@@ -221,6 +221,25 @@ SELECT * FROM v_dq_invalid_items;
 -- Orders with invalid status
 SELECT * FROM v_dq_invalid_status;
 ```
+## AI-Powered Report (Optional)
+
+The pipeline can generate an AI-powered executive summary in REPORT.md using
+Google Gemini. This is optional — the pipeline works fully without it.
+
+### Setup (2 minutes)
+
+**1. Get a free API key (no credit card required):**
+
+1. Go to [aistudio.google.com](https://aistudio.google.com)
+2. Sign in with your Google account
+3. Click **Get API Key** in the left sidebar
+4. Click **Create API Key**
+5. Copy the key
+
+**2. Add the key to your `.env` file:**
+
+```env
+GEMINI_API_KEY=your_key_here
 
 ## AI Usage
 
