@@ -106,7 +106,8 @@ def cmd_run(config: dict, logger):
     with log_step(logger, "Report generation"):
         conn = get_connection(config["database"])
         try:
-            generate_report(conn, quarantine_dir)
+            llm_config = config.get("llm", {})
+            generate_report(conn, quarantine_dir, llm_config=llm_config)
             logger.info("  Generated REPORT.md")
         finally:
             conn.close()
