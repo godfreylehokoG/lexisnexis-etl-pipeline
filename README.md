@@ -8,13 +8,7 @@ Built with Python 3.10+, pandas, psycopg v3, and PostgreSQL 17.
 
 ## 📹 Video Walkthrough
 
-[Data_Pipeline Walk Through-pt1](https://www.loom.com/share/b4fb50ba67b746e98a9eb82226c08075)
-
-[Data_Pipeline Walk Through-pt2](https://www.loom.com/share/d60ee4ee1a7049c0a6403bcac2502373)
-
-[Data_Pipeline Walk Through-pt3](https://www.loom.com/share/20c4ee19760c4a91a357f09e2845d02d)
-
-[Data_Pipeline Walk Through-pt4](https://www.loom.com/share/1d1912452eca42489af215f20b4491e2)
+[Data_Pipeline Walk Through]https://youtu.be/MbJ2omes5KY
 
 ## Project Structure
 
