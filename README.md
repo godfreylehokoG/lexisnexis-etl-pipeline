@@ -8,7 +8,7 @@ Built with Python 3.10+, pandas, psycopg v3, and PostgreSQL 17.
 
 ## 📹 Video Walkthrough
 
-[Data_Pipeline Walk Through]https://youtu.be/MbJ2omes5KY
+[Data_Pipeline Walk Through]https://youtu.be/vwsldpIfxd8
 
 ## Project Structure
 
